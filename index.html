@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学业发展中心 · 控制台</title>
+<style>
+/* ===== Reset & Variables ===== */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0A0A0C; --panel:#131316; --panel2:#1A1A1E;
+  --border:#28282C; --border2:#333338;
+  --text:#D4D4D8; --text2:#A1A1AA; --muted:#71717A;
+  --white:#ECECEE;
+  --orange:#EA580C; --orange2:#C2410C; --orange-glow:rgba(234,88,12,0.15);
+  --amber:#D97706; --amber-glow:rgba(217,119,6,0.15);
+  --green:#22C55E; --green-glow:rgba(34,197,94,0.12);
+  --blue:#3B82F6; --blue-glow:rgba(59,130,246,0.12);
+  --purple:#A855F7; --purple-glow:rgba(168,85,247,0.12);
+  --red:#EF4444; --red-glow:rgba(239,68,68,0.12);
+  --radius:10px; --radius-sm:6px; --sidebar-w:240px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif;
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.55;display:flex;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:100px;}
+
+/* ===== Toast ===== */
+.toast-container{position:fixed;top:1rem;right:1rem;z-index:100;display:flex;flex-direction:column;gap:0.5rem;}
+.toast{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.75rem 1.15rem;font-size:0.84rem;color:var(--text);animation:slideToast 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.5);display:flex;align-items:center;gap:0.55rem;max-width:360px;}
+.toast.success{border-color:var(--green);}
+.toast .t-icon{font-size:1rem;}
+@keyframes slideToast{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
+
+/* ===== Sidebar ===== */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:20;overflow-y:auto;overflow-x:hidden;}
+.sidebar-header{padding:1.3rem 1.25rem 1.1rem;border-bottom:1px solid var(--border);}
+.sidebar-logo{font-size:1.08rem;font-weight:700;color:var(--white);display:flex;align-items:center;gap:0.55rem;}
+.sidebar-logo .l-dot{width:9px;height:9px;border-radius:50%;background:var(--orange);box-shadow:0 0 10px var(--orange);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.sidebar-sub{font-size:0.7rem;color:var(--muted);margin-top:0.15rem;margin-left:1.55rem;}
+.sidebar-nav{flex:1;padding:0.75rem 0;}
+.nav-group{margin-bottom:0.3rem;}
+.nav-group-title{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;padding:0.55rem 1.25rem 0.3rem;font-weight:600;}
+.nav-item{display:flex;align-items:center;gap:0.65rem;padding:0.55rem 1.25rem;margin:0 0.5rem;border-radius:var(--radius-sm);cursor:pointer;font-size:0.86rem;color:var(--muted);transition:all 0.15s;border:none;background:none;width:calc(100% - 1rem);text-align:left;font-family:inherit;}
+.nav-item:hover{background:var(--panel2);color:var(--text);}
+.nav-item.active{background:var(--orange-glow);color:var(--orange);font-weight:600;}
+.nav-item .ni-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:0.63rem;padding:0.1rem 0.45rem;border-radius:100px;font-weight:600;}
+.nav-badge.hot{background:var(--orange-glow);color:var(--orange);}
+.nav-badge.new{background:var(--blue-glow);color:var(--blue);}
+.nav-badge.grn{background:var(--green-glow);color:var(--green);}
+.nav-user{margin-top:auto;padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:0.6rem;}
+.nav-user .nu-av{width:32px;height:32px;border-radius:50%;background:var(--orange-glow);color:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;}
+.nav-user .nu-name{font-size:0.8rem;color:var(--text);font-weight:600;}
+.nav-user .nu-role{font-size:0.65rem;color:var(--muted);}
+
+/* ===== Main ===== */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{height:52px;min-height:52px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:1rem;}
+.topbar-bread{display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;color:var(--muted);}
+.topbar-bread span{color:var(--text);font-weight:600;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:1.5rem;}
+.topbar-stat{font-size:0.73rem;color:var(--muted);}
+.topbar-stat b{color:var(--text);}
+.topbar-status{display:flex;align-items:center;gap:0.4rem;font-size:0.73rem;color:var(--green);}
+.topbar-status .s-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+
+.content{flex:1;overflow-y:auto;padding:1.5rem;}
+.panel-page{display:none;}
+.panel-page.active{display:block;animation:fadeSlide 0.22s ease;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== Section Header ===== */
+.sec-top{margin-bottom:1.5rem;}
+.sec-tag{display:inline-block;font-size:0.65rem;font-weight:600;color:var(--orange);background:var(--orange-glow);padding:0.15rem 0.65rem;border-radius:100px;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.45rem;}
+.sec-title{font-size:1.5rem;font-weight:700;color:var(--white);}
+.sec-desc{color:var(--text2);font-size:0.88rem;margin-top:0.2rem;}
+
+/* ===== Panel Cards ===== */
+.pcard{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.2s;}
+.pcard:hover{border-color:var(--border2);}
+
+/* ===== Dashboard ===== */
+.dash-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;}
+.dash-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;cursor:pointer;transition:all 0.2s;}
+.dash-card:hover{border-color:var(--orange);transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.dash-card .dc-row{display:flex;justify-content:space-between;align-items:flex-start;}
+.dash-card .dc-icon{font-size:1.5rem;opacity:0.7;}
+.dash-card .dc-change{font-size:0.7rem;font-weight:700;padding:0.1rem 0.45rem;border-radius:100px;}
+.dc-up{color:var(--green);background:var(--green-glow);}
+.dc-neutral{color:var(--text2);background:rgba(161,161,170,0.1);}
+.dash-card .dc-num{font-size:2rem;font-weight:800;color:var(--white);margin-top:0.5rem;}
+.dash-card .dc-label{font-size:0.76rem;color:var(--muted);margin-top:0.1rem;}
+
+.dash-row2{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin-bottom:1rem;}
+.dash-row3{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.dash-panel{padding:1.25rem;}
+.dash-panel h3{font-size:0.85rem;font-weight:700;color:var(--white);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+.dash-panel h3 .dp-dot{width:7px;height:7px;border-radius:50%;background:var(--orange);}
+.dp-activity{display:flex;align-items:center;gap:0.75rem;padding:0.7rem 0;border-bottom:1px solid var(--border);}
+.dp-activity:last-child{border-bottom:none;}
+.dp-activity .da-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.da-dot.soon{background:var(--orange);}
+.da-dot.done{background:var(--green);}
+.dp-activity .da-content{flex:1;}
+.dp-activity .da-title{font-size:0.82rem;color:var(--text);}
+.dp-activity .da-time{font-size:0.68rem;color:var(--muted);margin-top:0.1rem;}
+.dp-activity .da-badge{font-size:0.6rem;padding:0.1rem 0.45rem;border-radius:100px;font-weight:600;}
+.da-soon{background:var(--orange-glow);color:var(--orange);}
+.da-done{background:var(--green-glow);color:var(--green);}
+
+.dp-links{display:flex;flex-direction:column;gap:0.45rem;}
+.dp-link{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.85rem;background:var(--panel2);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;font-size:0.84rem;color:var(--text);text-decoration:none;}
+.dp-link:hover{background:var(--orange-glow);color:var(--orange);}
+.dp-link .pl-icon{font-size:1.1rem;}
+
+.stream-item{display:flex;gap:0.85rem;padding:0.65rem 0;border-bottom:1px solid var(--border);}
+.stream-item:last-child{border-bottom:none;}
+.stream-time{font-size:0.68rem;color:var(--muted);min-width:65px;flex-shrink:0;padding-top:0.15rem;}
+.stream-content{flex:1;}
+.stream-title{font-size:0.82rem;color:var(--text);}
+.stream-desc{font-size:0.73rem;color:var(--muted);margin-top:0.15rem;}
+
+/* ===== Members ===== */
+.members-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.85rem;}
+.member-card{padding:0;overflow:hidden;cursor:pointer;}
+.member-card:hover{border-color:var(--orange);}
+.m-card-top{padding:1.15rem 1.15rem 0.85rem;text-align:center;border-bottom:1px solid var(--border);position:relative;}
+.m-card-top .detail-hint{position:absolute;top:0.5rem;right:0.75rem;font-size:0.62rem;color:var(--muted);opacity:0;transition:opacity 0.2s;}
+.member-card:hover .detail-hint{opacity:1;}
+.m-avatar{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--orange-glow),rgba(234,88,12,0.25));color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;margin:0 auto 0.65rem;border:3px solid var(--orange2);}
+.m-name{font-size:1rem;font-weight:700;color:var(--white);}
+.m-role{font-size:0.75rem;color:var(--orange);font-weight:600;margin-top:0.1rem;}
+.m-card-mid{padding:0.75rem 1.15rem;}
+.m-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;text-align:center;}
+.m-stat .ms-num{font-size:1rem;font-weight:700;color:var(--white);}
+.m-stat .ms-label{font-size:0.62rem;color:var(--muted);margin-top:0.05rem;}
+.m-card-bot{padding:0.6rem 1.15rem 0.9rem;display:flex;gap:0.35rem;flex-wrap:wrap;justify-content:center;}
+.mtag{font-size:0.6rem;padding:0.12rem 0.5rem;border-radius:100px;font-weight:600;}
+.mtag-leader{background:var(--amber-glow);color:var(--amber);}
+.mtag-tech{background:var(--blue-glow);color:var(--blue);}
+.mtag-plan{background:var(--purple-glow);color:var(--purple);}
+.mtag-media{background:var(--green-glow);color:var(--green);}
+.mtag-active{background:var(--orange-glow);color:var(--orange);}
+.mtag-ops{background:var(--red-glow);color:var(--red);}
+
+/* ===== Tasks Kanban ===== */
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.kanban-col{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.kanban-col-header{padding:0.85rem 1rem;font-size:0.8rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;border-bottom:1px solid var(--border);}
+.kanban-col-header .kc-dot{width:7px;height:7px;border-radius:50%;}
+.kc-dot.todo{background:var(--blue);}
+.kc-dot.doing{background:var(--orange);}
+.kc-dot.done{background:var(--green);}
+.kanban-col-body{padding:0.75rem;}
+.kanban-card{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:0.6rem;transition:all 0.15s;}
+.kanban-card:hover{border-color:var(--orange);cursor:pointer;}
+.kanban-card .kc-title{font-size:0.84rem;font-weight:700;color:var(--white);margin-bottom:0.35rem;}
+.kanban-card .kc-desc{font-size:0.76rem;color:var(--text2);margin-bottom:0.65rem;line-height:1.4;}
+.kanban-card .kc-meta{display:flex;justify-content:space-between;align-items:center;}
+.kanban-card .kc-assignee{font-size:0.68rem;color:var(--muted);}
+.kanban-card .kc-priority{font-size:0.6rem;font-weight:700;padding:0.1rem 0.45rem;border-radius:100px;}
+.kc-pri-high{background:var(--orange-glow);color:var(--orange);}
+.kc-pri-mid{background:var(--amber-glow);color:var(--amber);}
+.kc-pri-low{background:rgba(161,161,170,0.1);color:var(--text2);}
+.kc-progress{margin-top:0.6rem;}
+.kc-progress-bar{height:4px;background:var(--border);border-radius:100px;overflow:hidden;margin-bottom:0.25rem;}
+.kc-progress-fill{height:100%;background:var(--orange);border-radius:100px;transition:width 0.5s ease;}
+.kc-progress-text{font-size:0.63rem;color:var(--muted);text-align:right;}
+
+/* ===== Activities ===== */
+.act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:0.85rem;}
+.act-card{overflow:hidden;}
+.act-head{height:140px;background:linear-gradient(135deg,var(--panel2),var(--panel));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.act-head::after{content:"";position:absolute;top:-30%;right:-10%;width:120px;height:120px;border-radius:50%;background:var(--orange-glow);filter:blur(40px);}
+.act-head .ah-icon{font-size:2.8rem;position:relative;z-index:1;opacity:0.7;}
+.act-body{padding:1rem 1.25rem 1.25rem;}
+.act-tag{display:inline-block;font-size:0.62rem;font-weight:700;padding:0.12rem 0.5rem;border-radius:100px;margin-bottom:0.5rem;}
+.act-tag.done{background:var(--green-glow);color:var(--green);}
+.act-card h4{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:0.4rem;}
+.act-card .act-reason{font-size:0.75rem;color:var(--orange);margin-bottom:0.5rem;font-weight:500;}
+.act-card p{font-size:0.8rem;color:var(--text2);margin-bottom:0.65rem;line-height:1.5;}
+.act-meta{font-size:0.7rem;color:var(--muted);display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+.act-meta span{display:flex;align-items:center;gap:0.25rem;}
+.act-signup-btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.35rem 0.85rem;border-radius:100px;font-size:0.7rem;font-weight:600;cursor:pointer;border:1px solid var(--orange);background:transparent;color:var(--orange);font-family:inherit;transition:all 0.15s;}
+.act-signup-btn:hover,.act-signup-btn.joined{background:var(--orange-glow);}
+.act-signup-btn.joined{border-color:var(--green);color:var(--green);background:var(--green-glow);}
+
+/* ===== Upcoming Timeline ===== */
+.timeline{position:relative;padding-left:2rem;}
+.timeline::before{content:"";position:absolute;left:0.55rem;top:0;bottom:0;width:2px;background:var(--border);}
+.tl-item{position:relative;margin-bottom:1.5rem;}
+.tl-item::before{content:"";position:absolute;left:-2rem;top:0.25rem;width:14px;height:14px;border-radius:50%;background:var(--panel);border:3px solid var(--border);z-index:1;}
+.tl-item.now::before{border-color:var(--orange);background:var(--orange);box-shadow:0 0 10px var(--orange);}
+.tl-item.next::before{border-color:var(--blue);}
+.tl-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;}
+.tl-card .tlc-period{font-size:0.65rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.35rem;}
+.tl-card h4{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:0.35rem;}
+.tl-card p{font-size:0.8rem;color:var(--text2);line-height:1.5;margin-bottom:0.5rem;}
+.tl-card .tlc-steps{display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.5rem;}
+.tl-step{font-size:0.65rem;padding:0.12rem 0.55rem;background:var(--panel2);border-radius:100px;color:var(--text2);}
+.tl-interest{display:inline-flex;align-items:center;gap:0.3rem;font-size:0.7rem;color:var(--muted);cursor:pointer;padding:0.25rem 0.7rem;border-radius:100px;border:1px solid var(--border);background:transparent;font-family:inherit;transition:all 0.15s;}
+.tl-interest:hover,.tl-interest.interested{border-color:var(--orange);color:var(--orange);background:var(--orange-glow);}
+
+/* ===== Materials ===== */
+.mat-toolbar{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.mat-search{flex:1;min-width:200px;padding:0.55rem 0.85rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.84rem;color:var(--text);font-family:inherit;transition:border-color 0.15s;}
+.mat-search:focus{outline:none;border-color:var(--orange);}
+.mat-search::placeholder{color:var(--muted);}
+.mat-filter{padding:0.55rem 1rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.8rem;color:var(--text);font-family:inherit;cursor:pointer;transition:all 0.15s;}
+.mat-filter:hover,.mat-filter.active{border-color:var(--orange);color:var(--orange);background:var(--orange-glow);}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.75rem;}
+.mat-card{display:flex;align-items:center;gap:0.85rem;padding:1rem 1.15rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all 0.15s;text-decoration:none;color:inherit;}
+.mat-card:hover{border-color:var(--orange);}
+.mat-icon{font-size:1.3rem;width:48px;height:48px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mat-icon.pdf{background:var(--red-glow);color:var(--red);}
+.mat-icon.xls{background:var(--green-glow);color:var(--green);}
+.mat-icon.doc{background:var(--blue-glow);color:var(--blue);}
+.mat-icon.img{background:var(--purple-glow);color:var(--purple);}
+.mat-icon.link{background:var(--orange-glow);color:var(--orange);}
+.mat-info{flex:1;min-width:0;}
+.mat-info h4{font-size:0.85rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mat-info .mi-meta{font-size:0.68rem;color:var(--muted);margin-top:0.25rem;display:flex;gap:0.65rem;flex-wrap:wrap;}
+
+/* ===== Recruit ===== */
+.recruit-hero{background:linear-gradient(135deg,#1A1A1E 0%,#131316 50%,rgba(234,88,12,0.05) 100%);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem;text-align:center;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.recruit-hero::after{content:"";position:absolute;top:-50%;right:-20%;width:200px;height:200px;border-radius:50%;background:var(--orange-glow);filter:blur(60px);}
+.recruit-hero h3{font-size:1.5rem;color:var(--white);margin-bottom:0.5rem;position:relative;z-index:1;}
+.recruit-hero p{color:var(--text2);font-size:0.88rem;margin-bottom:1.25rem;position:relative;z-index:1;}
+.recruit-hero .btn{position:relative;z-index:1;}
+
+.recruit-process{display:grid;grid-template-columns:repeat(4,1fr);gap:0.85rem;margin-bottom:1.5rem;}
+.rp-step{text-align:center;padding:1.25rem 0.85rem;}
+.rp-step .rps-num{width:40px;height:40px;border-radius:50%;background:var(--orange-glow);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;margin:0 auto 0.65rem;}
+.rp-step h4{font-size:0.82rem;font-weight:700;color:var(--white);margin-bottom:0.3rem;}
+.rp-step p{font-size:0.72rem;color:var(--text2);line-height:1.4;}
+
+.recruit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.85rem;}
+.recruit-card{text-align:center;padding:1.5rem 1.15rem;}
+.rc-icon{font-size:2.2rem;margin-bottom:0.75rem;}
+.recruit-card h4{font-size:0.95rem;font-weight:700;color:var(--white);margin-bottom:0.35rem;}
+.rc-needs{font-size:0.65rem;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;}
+.recruit-card p{font-size:0.78rem;color:var(--text2);line-height:1.5;}
+
+.recruit-form{margin-top:1.5rem;padding:1.5rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);}
+.recruit-form h3{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:1rem;}
+.rf-row{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;}
+.rf-field input,.rf-field select,.rf-field textarea{width:100%;padding:0.6rem 0.85rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;font-family:inherit;color:var(--text);transition:border-color 0.15s;}
+.rf-field input:focus,.rf-field select:focus,.rf-field textarea:focus{outline:none;border-color:var(--orange);}
+.rf-field textarea{height:80px;resize:vertical;}
+.rf-field.full{grid-column:1/-1;}
+.rf-field label{font-size:0.75rem;font-weight:600;color:var(--text2);margin-bottom:0.3rem;display:block;}
+
+/* ===== Suggest ===== */
+.suggest-form{padding:1.5rem;margin-bottom:1.5rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);}
+.suggest-form h3{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:0.8rem;}
+.sf-cats{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.75rem;}
+.sf-cat{padding:0.35rem 0.85rem;border-radius:100px;font-size:0.73rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg);color:var(--muted);transition:all 0.15s;font-family:inherit;}
+.sf-cat:hover{border-color:var(--text2);color:var(--text);}
+.sf-cat.active{border-color:var(--orange);color:var(--orange);background:var(--orange-glow);}
+.sf-row{display:flex;gap:0.75rem;margin-bottom:0.75rem;}
+.sf-row input{flex:1;}
+.suggest-form input,.suggest-form textarea{padding:0.6rem 0.85rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;font-family:inherit;color:var(--text);transition:border-color 0.15s;}
+.suggest-form input:focus,.suggest-form textarea:focus{outline:none;border-color:var(--orange);}
+.suggest-form textarea{height:100px;resize:vertical;width:100%;margin-bottom:0.75rem;}
+.sf-bottom{display:flex;justify-content:space-between;align-items:center;}
+.sf-hint{font-size:0.73rem;color:var(--muted);}
+.suggest-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1rem;}
+.ss-card{text-align:center;padding:1rem;}
+.ss-num{font-size:1.4rem;font-weight:800;color:var(--white);}
+.ss-label{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+.suggest-item{padding:0.9rem 1.15rem;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0.5rem;}
+.suggest-item .sh-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;flex-wrap:wrap;gap:0.3rem;}
+.suggest-item .sh-author{font-weight:600;color:var(--white);font-size:0.82rem;}
+.suggest-item .sh-time{font-size:0.68rem;color:var(--muted);}
+.suggest-item .sh-cat{font-size:0.62rem;color:var(--orange);font-weight:600;background:var(--orange-glow);padding:0.1rem 0.45rem;border-radius:100px;margin-right:0.4rem;}
+.suggest-item .sh-content{font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:0.5rem;}
+.s-vote-row{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;}
+.s-vote-btn{font-size:0.63rem;padding:0.15rem 0.55rem;border-radius:100px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;transition:all 0.15s;display:inline-flex;align-items:center;gap:0.25rem;}
+.s-vote-btn:hover{border-color:var(--green);color:var(--green);}
+.s-vote-btn.voted{border-color:var(--green);color:var(--green);background:var(--green-glow);}
+.s-vote-count{font-size:0.65rem;color:var(--muted);}
+.s-status{display:inline-block;font-size:0.6rem;font-weight:700;padding:0.1rem 0.5rem;border-radius:100px;}
+.s-status.new{background:var(--orange-glow);color:var(--orange);}
+.s-status.process{background:var(--blue-glow);color:var(--blue);}
+.s-status.done{background:var(--green-glow);color:var(--green);}
+
+/* ===== Rating ===== */
+.rating-top{display:grid;grid-template-columns:repeat(3,1fr);gap:0.85rem;margin-bottom:1.5rem;}
+.rt-card{padding:1.25rem;text-align:center;}
+.rt-card .rtc-icon{font-size:1.6rem;margin-bottom:0.5rem;}
+.rt-card .rtc-num{font-size:1.6rem;font-weight:800;color:var(--white);}
+.rt-card .rtc-label{font-size:0.7rem;color:var(--muted);margin-top:0.1rem;}
+.rating-intro{padding:1rem 1.25rem;margin-bottom:1.25rem;border-left:3px solid var(--orange);}
+.rating-intro h3{font-size:0.9rem;font-weight:700;color:var(--white);margin-bottom:0.4rem;}
+.rating-intro p{font-size:0.78rem;color:var(--text2);line-height:1.5;}
+
+.rating-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:0.85rem;}
+.rating-card{padding:1.25rem;}
+.rating-card .rt-top{display:flex;align-items:center;gap:0.85rem;margin-bottom:1rem;}
+.rating-card .rt-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;flex-shrink:0;border:2px solid var(--border);background:var(--orange-glow);color:var(--orange);}
+.rating-card .rt-name{font-weight:700;color:var(--white);font-size:0.9rem;}
+.rating-card .rt-role{font-size:0.7rem;color:var(--muted);}
+.rating-card .rt-total{font-size:1.5rem;font-weight:800;color:var(--orange);margin-left:auto;}
+.rt-sources{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;margin-bottom:0.85rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
+.rt-src{text-align:center;}
+.rt-src .rts-val{font-size:1.1rem;font-weight:700;color:var(--white);}
+.rt-src .rts-label{font-size:0.62rem;color:var(--muted);margin-top:0.05rem;}
+.rt-src .rts-weight{font-size:0.58rem;color:var(--muted);}
+
+.rbar-group{display:flex;flex-direction:column;gap:0.5rem;margin-bottom:0.75rem;}
+.rbar-row{display:flex;align-items:center;gap:0.6rem;}
+.rbar-label{font-size:0.68rem;color:var(--muted);width:50px;flex-shrink:0;}
+.rbar-track{flex:1;height:6px;background:var(--border);border-radius:100px;overflow:hidden;}
+.rbar-fill{height:100%;border-radius:100px;transition:width 0.7s ease;}
+.rbar-fill.orange{background:var(--orange);}
+.rbar-fill.amber{background:var(--amber);}
+.rbar-fill.blue{background:var(--blue);}
+.rbar-fill.green{background:var(--green);}
+.rbar-fill.purple{background:var(--purple);}
+.rbar-val{font-size:0.68rem;font-weight:600;color:var(--text);width:28px;text-align:right;}
+
+.rate-peer-btn{display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;border-radius:100px;font-size:0.68rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:inherit;transition:all 0.15s;}
+.rate-peer-btn:hover{border-color:var(--orange);color:var(--orange);}
+.rate-peer-btn.rated{border-color:var(--green);color:var(--green);background:var(--green-glow);}
+
+/* ===== Radar ===== */
+.radar-wrap{display:flex;justify-content:center;margin-bottom:0.6rem;}
+.radar-wrap svg{width:120px;height:120px;}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;z-index:50;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;max-width:520px;width:90%;max-height:80vh;overflow-y:auto;}
+.modal-box h3{font-size:1.1rem;font-weight:700;color:var(--white);margin-bottom:0.75rem;}
+.modal-box p{font-size:0.84rem;color:var(--text2);line-height:1.5;margin-bottom:0.5rem;}
+.modal-close{margin-top:1rem;text-align:right;display:flex;gap:0.5rem;justify-content:flex-end;}
+.modal-close button{padding:0.5rem 1.25rem;border-radius:var(--radius-sm);font-family:inherit;font-size:0.82rem;font-weight:600;cursor:pointer;border:none;}
+.btn-ok{background:var(--orange);color:#fff;}
+.btn-cancel{background:transparent;border:1px solid var(--border);color:var(--text);}
+
+/* ===== Buttons ===== */
+.btn{display:inline-block;padding:0.6rem 1.5rem;border-radius:var(--radius-sm);font-size:0.84rem;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all 0.15s;text-decoration:none;}
+.btn-primary{background:var(--orange);color:#fff;}
+.btn-primary:hover{background:var(--orange2);box-shadow:0 2px 12px rgba(234,88,12,0.25);}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-outline:hover{border-color:var(--orange);color:var(--orange);}
+
+/* ===== Mobile ===== */
+.mobile-toggle{display:none;position:fixed;top:0.75rem;left:0.75rem;z-index:55;background:var(--panel);border:1px solid var(--border);color:var(--text);width:38px;height:38px;border-radius:var(--radius-sm);font-size:1.2rem;cursor:pointer;align-items:center;justify-content:center;}
+@media (max-width:768px){
+  .sidebar{position:fixed;left:-260px;top:0;bottom:0;transition:left 0.25s ease;box-shadow:4px 0 25px rgba(0,0,0,0.6);}
+  .sidebar.open{left:0;}
+  .mobile-toggle{display:flex;}
+  .topbar{padding-left:3rem;}
+  .topbar-right{display:none;}
+  .dash-grid{grid-template-columns:repeat(2,1fr);}
+  .dash-row2,.dash-row3{grid-template-columns:1fr;}
+  .kanban{grid-template-columns:1fr;}
+  .recruit-process{grid-template-columns:repeat(2,1fr);}
+  .rating-grid,.members-grid,.act-grid,.mat-grid,.recruit-grid{grid-template-columns:1fr;}
+  .sf-row{flex-direction:column;}
+  .rf-row{grid-template-columns:1fr;}
+  .rating-top{grid-template-columns:1fr;}
+  .suggest-summary{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- Mobile -->
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo"><span class="l-dot"></span> 学业发展中心</div>
+    <div class="sidebar-sub">Study Development Dept</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group"><div class="nav-group-title">总览</div>
+      <button class="nav-item active" onclick="switchPanel('home')"><span class="ni-icon">🏠</span> 控制台</button>
+    </div>
+    <div class="nav-group"><div class="nav-group-title">部门</div>
+      <button class="nav-item" onclick="switchPanel('members')"><span class="ni-icon">👥</span> 成员简介 <span class="nav-badge hot">12</span></button>
+      <button class="nav-item" onclick="switchPanel('tasks')"><span class="ni-icon">📋</span> 部门任务 <span class="nav-badge hot">3</span></button>
+      <button class="nav-item" onclick="switchPanel('rating')"><span class="ni-icon">⭐</span> 评分版块</button>
+    </div>
+    <div class="nav-group"><div class="nav-group-title">活动</div>
+      <button class="nav-item" onclick="switchPanel('activities')"><span class="ni-icon">📖</span> 已有活动 <span class="nav-badge grn">6</span></button>
+      <button class="nav-item" onclick="switchPanel('upcoming')"><span class="ni-icon">🎯</span> 待开展 <span class="nav-badge hot">5</span></button>
+    </div>
+    <div class="nav-group"><div class="nav-group-title">资源</div>
+      <button class="nav-item" onclick="switchPanel('materials')"><span class="ni-icon">📦</span> 以往资料</button>
+      <button class="nav-item" onclick="switchPanel('recruit')"><span class="ni-icon">📢</span> 招新 <span class="nav-badge new">招</span></button>
+      <button class="nav-item" onclick="switchPanel('suggest')"><span class="ni-icon">💬</span> 建议渠道</button>
+      <button class="nav-item" onclick="switchPanel('datacenter')"><span class="ni-icon">🗄️</span> 数据中心</button>
+    </div>
+  </nav>
+  <div class="nav-user">
+    <div class="nu-av">星</div>
+    <div><div class="nu-name">星野拓</div><div class="nu-role">主席团</div></div>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-bread">学业发展中心 <span style="margin:0 0.3rem;color:var(--muted);">/</span> <span id="topbarBread">控制台</span></div>
+    <div class="topbar-right">
+      <div class="topbar-stat">成员 <b>12</b></div>
+      <div class="topbar-stat">活动 <b>15+</b></div>
+      <div class="topbar-stat">服务 <b>2000+</b> 人次</div>
+      <div class="topbar-status"><span class="s-dot"></span> 运行中</div>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ===== 控制台 ===== -->
+<div class="panel-page active" data-panel="home">
+  <div class="dash-grid">
+    <div class="dash-card" onclick="switchPanel('members')">
+      <div class="dc-row"><span class="dc-icon">👥</span><span class="dc-change dc-up">本学期</span></div>
+      <div class="dc-num">12</div><div class="dc-label">部门成员</div>
+    </div>
+    <div class="dash-card" onclick="switchPanel('tasks')">
+      <div class="dc-row"><span class="dc-icon">📋</span><span class="dc-change dc-up">3 进行中</span></div>
+      <div class="dc-num">12</div><div class="dc-label">核心任务</div>
+    </div>
+    <div class="dash-card" onclick="switchPanel('activities')">
+      <div class="dc-row"><span class="dc-icon">📖</span><span class="dc-change dc-up">+2 本学期</span></div>
+      <div class="dc-num">15+</div><div class="dc-label">已开展活动</div>
+    </div>
+    <div class="dash-card" onclick="switchPanel('upcoming')">
+      <div class="dc-row"><span class="dc-icon">🎯</span><span class="dc-change dc-neutral">5 计划中</span></div>
+      <div class="dc-num">5</div><div class="dc-label">待开展活动</div>
+    </div>
+  </div>
+  <div class="dash-row2">
+    <div class="dash-panel pcard">
+      <h3><span class="dp-dot"></span>活动动态</h3>
+      <div class="dp-activity"><span class="da-dot soon"></span><div class="da-content"><div class="da-title">模考成绩分析会筹备</div><div class="da-time">预计下月 · 执行组</div></div><span class="da-badge da-soon">近期</span></div>
+      <div class="dp-activity"><span class="da-dot soon"></span><div class="da-content"><div class="da-title">串讲 2.0 策划中</div><div class="da-time">本学期末 · 内容组</div></div><span class="da-badge da-soon">策划中</span></div>
+      <div class="dp-activity"><span class="da-dot done"></span><div class="da-content"><div class="da-title">四六级模拟考试</div><div class="da-time">2026-06 · 参与 220 人</div></div><span class="da-badge da-done">已完结</span></div>
+      <div class="dp-activity"><span class="da-dot done"></span><div class="da-content"><div class="da-title">辩论赛</div><div class="da-time">2026-05 · 3 场</div></div><span class="da-badge da-done">已完结</span></div>
+      <div class="dp-activity"><span class="da-dot done"></span><div class="da-content"><div class="da-title">期末复习资料专题整理</div><div class="da-time">2026-06 · 覆盖全年级</div></div><span class="da-badge da-done">已完成</span></div>
+    </div>
+    <div class="dash-panel pcard">
+      <h3><span class="dp-dot"></span>快捷入口</h3>
+      <div class="dp-links">
+        <a href="javascript:switchPanel('recruit')" class="dp-link"><span class="pl-icon">📢</span> 加入我们</a>
+        <a href="javascript:switchPanel('suggest')" class="dp-link"><span class="pl-icon">💬</span> 提交建议</a>
+        <a href="javascript:switchPanel('materials')" class="dp-link"><span class="pl-icon">📦</span> 下载资料</a>
+        <a href="javascript:switchPanel('rating')" class="dp-link"><span class="pl-icon">⭐</span> 评分排行</a>
+      </div>
+    </div>
+  </div>
+  <div class="dash-row3">
+    <div class="dash-panel pcard">
+      <h3><span class="dp-dot"></span>近期时间线</h3>
+      <div class="stream-item"><div class="stream-time">07-05</div><div class="stream-content"><div class="stream-title">新成员千寻月加入内容组</div><div class="stream-desc">负责串讲讲义编写与活动反馈收集</div></div></div>
+      <div class="stream-item"><div class="stream-time">06-25</div><div class="stream-content"><div class="stream-title">四六级模考完成</div><div class="stream-desc">220 人参与，满意度 87%，建议发问卷调查中</div></div></div>
+      <div class="stream-item"><div class="stream-time">06-10</div><div class="stream-content"><div class="stream-title">串讲 2.0 方案通过</div><div class="stream-desc">主席团批准「调研+精讲+录播」新模式</div></div></div>
+      <div class="stream-item"><div class="stream-time">05-20</div><div class="stream-content"><div class="stream-title">辩论赛收尾</div><div class="stream-desc">3 场辩论赛全部完成，计时流程优化记录归档</div></div></div>
+    </div>
+    <div class="dash-panel pcard">
+      <h3><span class="dp-dot"></span>本周任务</h3>
+      <div class="stream-item"><div class="stream-time">07-15</div><div class="stream-content"><div class="stream-title">招新海报定稿</div><div class="stream-desc">宣传组 · 待审核</div></div></div>
+      <div class="stream-item"><div class="stream-time">07-16</div><div class="stream-content"><div class="stream-title">模考分析会场地确认</div><div class="stream-desc">执行组 · 进行中</div></div></div>
+      <div class="stream-item"><div class="stream-time">07-17</div><div class="stream-content"><div class="stream-title">串讲 2.0 选题投票发布</div><div class="stream-desc">内容组 · 待开始</div></div></div>
+      <div class="stream-item"><div class="stream-time">07-18</div><div class="stream-content"><div class="stream-title">新成员培训材料整理</div><div class="stream-desc">全体 · 分配中</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 成员简介 ===== -->
+<div class="panel-page" data-panel="members">
+  <div class="sec-top">
+    <div class="sec-tag">Members</div>
+    <div class="sec-title">成员简介</div>
+    <div class="sec-desc">点击任意成员卡片查看完整属性面板与评分明细。共 12 人，设主席团、内容组、宣传组、执行组四个部门。</div>
+  </div>
+  <div class="members-grid" id="membersContainer"></div>
+</div>
+
+<!-- ===== 部门任务 ===== -->
+<div class="panel-page" data-panel="tasks">
+  <div class="sec-top">
+    <div class="sec-tag">Tasks</div>
+    <div class="sec-title">部门任务看板</div>
+    <div class="sec-desc">按状态分三列，点击卡片可将其推进到下一状态（待开始 → 进行中 → 已完成）。</div>
+  </div>
+  <div class="kanban" id="kanbanContainer"></div>
+</div>
+
+<!-- ===== 已有活动 ===== -->
+<div class="panel-page" data-panel="activities">
+  <div class="sec-top">
+    <div class="sec-tag">Activities</div>
+    <div class="sec-title">已有活动</div>
+    <div class="sec-desc">我们组织过的学业支持活动，每项均有参与人数、改善点和复盘记录。点击"我想参加"表达对类似活动的兴趣。</div>
+  </div>
+  <div class="act-grid" id="activitiesContainer"></div>
+</div>
+
+<!-- ===== 待开展 ===== -->
+<div class="panel-page" data-panel="upcoming">
+  <div class="sec-top">
+    <div class="sec-tag">Upcoming</div>
+    <div class="sec-title">待开展活动</div>
+    <div class="sec-desc">点击"我感兴趣"表达你的偏好——票数高的活动将优先推进。</div>
+  </div>
+  <div class="timeline" id="timelineContainer"></div>
+</div>
+
+<!-- ===== 以往资料 ===== -->
+<div class="panel-page" data-panel="materials">
+  <div class="sec-top">
+    <div class="sec-tag">Materials</div>
+    <div class="sec-title">以往资料</div>
+    <div class="sec-desc">按类型筛选和搜索，所有资料链接可替换为实际下载地址。</div>
+  </div>
+  <div class="mat-toolbar">
+    <input class="mat-search" id="matSearch" placeholder="搜索资料名称或关键字..." oninput="filterMaterials()">
+    <button class="mat-filter active" onclick="setMatFilter('all',this)">全部</button>
+    <button class="mat-filter" onclick="setMatFilter('pdf',this)">PDF 文档</button>
+    <button class="mat-filter" onclick="setMatFilter('xls',this)">数据表格</button>
+    <button class="mat-filter" onclick="setMatFilter('img',this)">图片归档</button>
+    <button class="mat-filter" onclick="setMatFilter('link',this)">链接合集</button>
+  </div>
+  <div class="mat-grid" id="materialsContainer"></div>
+</div>
+
+<!-- ===== 招新 ===== -->
+<div class="panel-page" data-panel="recruit">
+  <div class="sec-top">
+    <div class="sec-tag">Recruitment</div>
+    <div class="sec-title">招新</div>
+    <div class="sec-desc">2026 秋季招新进行中。</div>
+  </div>
+  <div class="recruit-hero">
+    <h3>🌟 2026 秋季招新正式启动</h3>
+    <p>如果你不想活动只是"办完交差"，如果你想做出真正有用的东西，我们在找你。</p>
+    <a href="#rf-form" class="btn btn-primary">立即报名 →</a>
+  </div>
+  <div class="recruit-process" id="recruitProcess"></div>
+  <div style="font-size:1rem;font-weight:700;color:var(--white);margin-bottom:0.75rem;">招募岗位</div>
+  <div class="recruit-grid" id="recruitContainer"></div>
+  <div class="recruit-form" id="rf-form">
+    <h3>📝 报名表</h3>
+    <div class="rf-row">
+      <div class="rf-field"><label>姓名 *</label><input id="rfName" placeholder="你的名字"></div>
+      <div class="rf-field"><label>意向组别 *</label>
+        <select id="rfGroup"><option value="">请选择</option><option>内容组</option><option>宣传组</option><option>执行组</option><option>数据组</option></select>
+      </div>
+    </div>
+    <div class="rf-row">
+      <div class="rf-field"><label>学院 / 专业</label><input id="rfDept" placeholder="如：机电学院 智能无人系统"></div>
+      <div class="rf-field"><label>联系方式</label><input id="rfContact" placeholder="微信 / QQ / 手机"></div>
+    </div>
+    <div class="rf-field full"><label>自我介绍 & 为什么想来</label><textarea id="rfIntro" placeholder="说说你自己，以及为什么想加入学业发展中心"></textarea></div>
+    <button class="btn btn-primary" style="margin-top:0.5rem;" onclick="submitRecruit()">提交报名</button>
+  </div>
+</div>
+
+<!-- ===== 建议渠道 ===== -->
+<div class="panel-page" data-panel="suggest">
+  <div class="sec-top">
+    <div class="sec-tag">Feedback</div>
+    <div class="sec-title">建议渠道</div>
+    <div class="sec-desc">提交建议并可对他人的建议投票支持。票数高的将优先在例会上讨论。</div>
+  </div>
+  <div class="suggest-summary">
+    <div class="ss-card pcard"><div class="ss-num" style="color:var(--orange);" id="sugTotal">12</div><div class="ss-label">已收到建议</div></div>
+    <div class="ss-card pcard"><div class="ss-num" style="color:var(--green);" id="sugAdopted">5</div><div class="ss-label">已采纳</div></div>
+    <div class="ss-card pcard"><div class="ss-num" style="color:var(--blue);" id="sugProcessing">3</div><div class="ss-label">处理中</div></div>
+  </div>
+  <div class="suggest-form">
+    <h3>📝 提交你的建议或活动创意</h3>
+    <div class="sf-cats" id="sfCats">
+      <button class="sf-cat active" onclick="selectCat('活动建议',this)">活动建议</button>
+      <button class="sf-cat" onclick="selectCat('资料需求',this)">资料需求</button>
+      <button class="sf-cat" onclick="selectCat('合作意向',this)">合作意向</button>
+      <button class="sf-cat" onclick="selectCat('其他意见',this)">其他意见</button>
+    </div>
+    <div class="sf-row">
+      <input type="text" id="suggestName" placeholder="你的名字（选填）">
+      <input type="text" id="suggestTopic" placeholder="建议主题 *">
+    </div>
+    <textarea id="suggestContent" placeholder="详细描述你的建议或想法..."></textarea>
+    <div class="sf-bottom">
+      <span class="sf-hint">采纳的建议将在部门例会上确认</span>
+      <button class="btn btn-primary" onclick="submitSuggest()">提交建议</button>
+    </div>
+  </div>
+  <div id="suggestHistory"></div>
+</div>
+
+<!-- ===== 数据中心 ===== -->
+<div class="panel-page" data-panel="datacenter">
+  <div class="sec-top">
+    <div class="sec-tag">Data Center</div>
+    <div class="sec-title">数据中心</div>
+    <div class="sec-desc">所有提交的建议和报名记录均保存在浏览器本地。可导出 JSON 备份，或清空重置。</div>
+  </div>
+  <div class="dc-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;margin-bottom:1.25rem;">
+    <div class="pcard" style="text-align:center;padding:1rem;"><div style="font-size:1.4rem;font-weight:700;color:var(--orange);" id="dcSugCount">0</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">建议总数</div></div>
+    <div class="pcard" style="text-align:center;padding:1rem;"><div style="font-size:1.4rem;font-weight:700;color:var(--blue);" id="dcRecCount">0</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">报名总数</div></div>
+    <div class="pcard" style="text-align:center;padding:1rem;"><div style="font-size:1.4rem;font-weight:700;color:var(--green);" id="dcSugDone">0</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">已采纳建议</div></div>
+    <div class="pcard" style="text-align:center;padding:1rem;"><div style="font-size:1.4rem;font-weight:700;color:var(--purple);" id="dcStorage">0 KB</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">存储占用</div></div>
+  </div>
+  <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="exportAllData()">📥 导出全部数据 (JSON)</button>
+    <button class="btn" style="background:var(--amber);color:var(--white);" onclick="importDataPrompt()">📤 导入数据</button>
+    <button class="btn" style="background:var(--red);color:var(--white);" onclick="clearAllData()">🗑 清空全部数据</button>
+  </div>
+  <div id="dcDataView" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+    <div class="pcard" style="padding:1rem;">
+      <h3 style="font-size:0.9rem;font-weight:700;color:var(--orange);margin-bottom:0.75rem;">💬 建议列表</h3>
+      <div id="dcSugList" style="max-height:500px;overflow-y:auto;font-size:0.78rem;"></div>
+    </div>
+    <div class="pcard" style="padding:1rem;">
+      <h3 style="font-size:0.9rem;font-weight:700;color:var(--blue);margin-bottom:0.75rem;">📝 报名列表</h3>
+      <div id="dcRecList" style="max-height:500px;overflow-y:auto;font-size:0.78rem;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 评分版块 ===== -->
+<div class="panel-page" data-panel="rating">
+  <div class="sec-top">
+    <div class="sec-tag">Rating</div>
+    <div class="sec-title">评分版块</div>
+    <div class="sec-desc">评分来自三个维度：活动参与分 + 同事互评分 + 服务反馈分。同事互评可交互——点击"互评"为他人打分。</div>
+  </div>
+  <div class="rating-intro pcard">
+    <h3>📐 三元评分体系</h3>
+    <p><b>活动参与分（30%）</b> 根据实际参与的活动场次、担任角色和贡献度计算。<br>
+    <b>同事互评分（35%）</b> 部门内部匿名评价，综合执行力、协作力、可靠度三个维度。<br>
+    <b>服务反馈分（35%）</b> 活动参与者的满意度调查——活动到底有没有帮到他们。</p>
+  </div>
+  <div class="rating-top">
+    <div class="rt-card pcard"><div class="rtc-icon">🏆</div><div class="rtc-num" style="color:var(--orange);">86</div><div class="rtc-label">总分最高</div></div>
+    <div class="rt-card pcard"><div class="rtc-icon">📊</div><div class="rtc-num" style="color:var(--green);">74.3</div><div class="rtc-label">总分平均</div></div>
+    <div class="rt-card pcard"><div class="rtc-icon">📈</div><div class="rtc-num" style="color:var(--blue);">+3.8</div><div class="rtc-label">本学期涨幅</div></div>
+  </div>
+  <div class="rating-grid" id="ratingContainer"></div>
+</div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal"><div class="modal-box"><div id="modalContent"></div></div></div>
+
+<script>
+// ===== Toast =====
+function toast(msg, type) {
+  const c = document.getElementById("toasts");
+  const d = document.createElement("div");
+  d.className = "toast " + (type || "");
+  d.innerHTML = '<span class="t-icon">' + (type === "success" ? "✅" : "💬") + '</span>' + msg;
+  c.appendChild(d);
+  setTimeout(() => { d.style.opacity = "0"; d.style.transition = "opacity 0.3s"; setTimeout(() => d.remove(), 300); }, 2500);
+}
+
+// ===== DATA =====
+// 评分计算: 活动参与分(30%) + 同事互评分(35%) + 服务反馈分(35%)
+const DATA = {
+  members: [
+    { id:"hosino", name:"星野拓", role:"主席团", avatar:"星", desc:"负责部门整体规划与活动统筹。主张从需求出发设计活动，拒绝做完交差。", tags:[{t:"主席团",c:"leader"},{t:"全局把控",c:"plan"},{t:"串讲·模考",c:"active"}], acts:8, sessions:3,
+      actScore:88, peerScore:85, svcScore:86, total:86, // 总评分加权
+      attrs:[{name:"专业力",val:78,cls:"orange"},{name:"工具力",val:72,cls:"amber"},{name:"沟通力",val:88,cls:"blue"},{name:"创意力",val:82,cls:"green"},{name:"执行力",val:90,cls:"purple"},{name:"可靠度",val:88,cls:"red"}],
+      peerRated:false },
+    { id:"kaze", name:"风间凛", role:"内容组组长", avatar:"风", desc:"串讲讲义编写、模考命题与成绩分析。擅长高数与物理，出题命中率高。", tags:[{t:"内容输出",c:"tech"},{t:"出题·分析",c:"active"},{t:"组长",c:"leader"}], acts:6, sessions:2,
+      actScore:82, peerScore:80, svcScore:84, total:82,
+      attrs:[{name:"专业力",val:92,cls:"orange"},{name:"工具力",val:80,cls:"amber"},{name:"沟通力",val:75,cls:"blue"},{name:"创意力",val:68,cls:"green"},{name:"执行力",val:85,cls:"purple"},{name:"可靠度",val:82,cls:"red"}],
+      peerRated:false },
+    { id:"yagami", name:"夜神月", role:"宣传组组长", avatar:"夜", desc:"海报设计、公众号推文、摄影与短视频。审美在线，文案有梗。", tags:[{t:"宣传运营",c:"media"},{t:"海报·推文·摄影",c:"active"},{t:"组长",c:"leader"}], acts:7, sessions:2,
+      actScore:80, peerScore:78, svcScore:82, total:80,
+      attrs:[{name:"专业力",val:70,cls:"orange"},{name:"工具力",val:88,cls:"amber"},{name:"沟通力",val:82,cls:"blue"},{name:"创意力",val:92,cls:"green"},{name:"执行力",val:78,cls:"purple"},{name:"可靠度",val:75,cls:"red"}],
+      peerRated:false },
+    { id:"kuro", name:"黑铁诚", role:"执行组骨干", avatar:"黑", desc:"场地、设备、物资——所有需要靠谱的地方他都在。全场最稳的人。", tags:[{t:"现场执行",c:"ops"},{t:"监考·计时",c:"active"},{t:"老成员",c:"media"}], acts:9, sessions:3,
+      actScore:84, peerScore:82, svcScore:76, total:81,
+      attrs:[{name:"专业力",val:62,cls:"orange"},{name:"工具力",val:65,cls:"amber"},{name:"沟通力",val:72,cls:"blue"},{name:"创意力",val:55,cls:"green"},{name:"执行力",val:93,cls:"purple"},{name:"可靠度",val:95,cls:"red"}],
+      peerRated:false },
+    { id:"nanami", name:"七海千代", role:"执行组", avatar:"七", desc:"日常物资管理、数据统计、QQ群运营。部门运转的隐形支柱。", tags:[{t:"日常管理",c:"media"},{t:"物资·数据",c:"plan"},{t:"运营",c:"active"}], acts:5, sessions:2,
+      actScore:72, peerScore:76, svcScore:74, total:75,
+      attrs:[{name:"专业力",val:58,cls:"orange"},{name:"工具力",val:70,cls:"amber"},{name:"沟通力",val:78,cls:"blue"},{name:"创意力",val:60,cls:"green"},{name:"执行力",val:80,cls:"purple"},{name:"可靠度",val:85,cls:"red"}],
+      peerRated:false },
+    { id:"chihiro", name:"千寻月", role:"内容组", avatar:"千", desc:"协助串讲内容准备、课后问卷发放与反馈整理。做事细致，新人中的潜力股。", tags:[{t:"内容支持",c:"tech"},{t:"反馈收集",c:"plan"},{t:"新人",c:"media"}], acts:3, sessions:1,
+      actScore:68, peerScore:72, svcScore:76, total:72,
+      attrs:[{name:"专业力",val:75,cls:"orange"},{name:"工具力",val:68,cls:"amber"},{name:"沟通力",val:65,cls:"blue"},{name:"创意力",val:60,cls:"green"},{name:"执行力",val:72,cls:"purple"},{name:"可靠度",val:70,cls:"red"}],
+      peerRated:false },
+    { id:"renji", name:"莲司", role:"宣传组", avatar:"莲", desc:"活动拍摄、短视频剪辑、社群氛围运营。自带段子手属性。", tags:[{t:"摄影剪辑",c:"media"},{t:"社群运营",c:"active"},{t:"新人",c:"media"}], acts:2, sessions:1,
+      actScore:62, peerScore:70, svcScore:72, total:68,
+      attrs:[{name:"专业力",val:55,cls:"orange"},{name:"工具力",val:72,cls:"amber"},{name:"沟通力",val:80,cls:"blue"},{name:"创意力",val:85,cls:"green"},{name:"执行力",val:68,cls:"purple"},{name:"可靠度",val:62,cls:"red"}],
+      peerRated:false },
+    { id:"sakura", name:"佐仓绫", role:"干事", avatar:"佐", desc:"协助活动执行、监考和场地布置，正在熟悉部门流程。学习意愿强。", tags:[{t:"活动支持",c:"ops"},{t:"新人",c:"media"}], acts:2, sessions:1,
+      actScore:58, peerScore:65, svcScore:69, total:64,
+      attrs:[{name:"专业力",val:50,cls:"orange"},{name:"工具力",val:55,cls:"amber"},{name:"沟通力",val:68,cls:"blue"},{name:"创意力",val:52,cls:"green"},{name:"执行力",val:65,cls:"purple"},{name:"可靠度",val:70,cls:"red"}],
+      peerRated:false },
+    { id:"taki", name:"泷川翔", role:"干事", avatar:"泷", desc:"参与监考和计时工作，做事踏实不浮躁。", tags:[{t:"执行支持",c:"ops"},{t:"新人",c:"media"}], acts:1, sessions:1,
+      actScore:55, peerScore:60, svcScore:65, total:60,
+      attrs:[{name:"专业力",val:48,cls:"orange"},{name:"工具力",val:52,cls:"amber"},{name:"沟通力",val:58,cls:"blue"},{name:"创意力",val:45,cls:"green"},{name:"执行力",val:60,cls:"purple"},{name:"可靠度",val:65,cls:"red"}],
+      peerRated:false },
+    { id:"kanna", name:"神奈川", role:"干事", avatar:"神", desc:"协助推文排版和活动现场引导，正在适应部门节奏。", tags:[{t:"宣传支持",c:"media"},{t:"新人",c:"media"}], acts:1, sessions:1,
+      actScore:52, peerScore:58, svcScore:60, total:57,
+      attrs:[{name:"专业力",val:45,cls:"orange"},{name:"工具力",val:58,cls:"amber"},{name:"沟通力",val:55,cls:"blue"},{name:"创意力",val:50,cls:"green"},{name:"执行力",val:56,cls:"purple"},{name:"可靠度",val:60,cls:"red"}],
+      peerRated:false },
+    { id:"kamo", name:"鸭川瞬", role:"干事", avatar:"鸭", desc:"协助资料整理和网盘维护。", tags:[{t:"资料整理",c:"tech"},{t:"新人",c:"media"}], acts:1, sessions:1,
+      actScore:50, peerScore:55, svcScore:55, total:54,
+      attrs:[{name:"专业力",val:42,cls:"orange"},{name:"工具力",val:55,cls:"amber"},{name:"沟通力",val:50,cls:"blue"},{name:"创意力",val:40,cls:"green"},{name:"执行力",val:52,cls:"purple"},{name:"可靠度",val:55,cls:"red"}],
+      peerRated:false },
+    { id:"yuki", name:"雪之下", role:"干事", avatar:"雪", desc:"新加入，协助日常事务。", tags:[{t:"日常支持",c:"ops"},{t:"新人",c:"media"}], acts:0, sessions:1,
+      actScore:45, peerScore:50, svcScore:52, total:49,
+      attrs:[{name:"专业力",val:40,cls:"orange"},{name:"工具力",val:45,cls:"amber"},{name:"沟通力",val:48,cls:"blue"},{name:"创意力",val:38,cls:"green"},{name:"执行力",val:46,cls:"purple"},{name:"可靠度",val:50,cls:"red"}],
+      peerRated:false },
+  ],
+  tasks: {
+    todo: [
+      { id:"t1", title:"模考成绩分析会场地确认", desc:"联系教务处借教室，确认投影、座位和时间窗口", assignee:"黑铁诚", priority:"high", progress:30 },
+      { id:"t2", title:"串讲 2.0 选题投票发布", desc:"设计投票问卷（最怕哪几章），QQ群+公众号同步推送", assignee:"风间凛", priority:"high", progress:10 },
+      { id:"t3", title:"招新推文排版定稿", desc:"完成推文初稿，提交主席团审阅后发布", assignee:"夜神月", priority:"mid", progress:60 },
+    ],
+    doing: [
+      { id:"t4", title:"招新海报设计", desc:"4组招募海报（内容/宣传/执行/数据各1张）", assignee:"夜神月", priority:"high", progress:75 },
+      { id:"t5", title:"新成员培训手册更新", desc:"补充本学期新增活动流程、关键联系人", assignee:"七海千代", priority:"mid", progress:45 },
+      { id:"t6", title:"期末串讲排期协调", desc:"与各科讲者确认时间、教室，排定最终场次表", assignee:"星野拓", priority:"high", progress:40 },
+    ],
+    done: [
+      { id:"t7", title:"四六级模考执行", desc:"两场模考完成，220人参与，试卷回收率98%", assignee:"黑铁诚", priority:"high", progress:100 },
+      { id:"t8", title:"辩论赛计时工作", desc:"3场辩论赛完成，计时流程记录已归档", assignee:"黑铁诚", priority:"mid", progress:100 },
+      { id:"t9", title:"期末资料专题整理", desc:"各科历年真题+重点笔记，按学科打包上传", assignee:"风间凛", priority:"high", progress:100 },
+      { id:"t10", title:"串讲活动执行", desc:"本学期3场串讲（高数/线代/物理），满意度均>85%", assignee:"风间凛", priority:"high", progress:100 },
+      { id:"t11", title:"新生学业导航", desc:"开学初为每个专业班级做学业导航介绍", assignee:"星野拓", priority:"high", progress:100 },
+      { id:"t12", title:"串讲&模考效果复盘报告", desc:"对比串讲前后模考成绩，量化改进效果", assignee:"风间凛", priority:"high", progress:100 },
+    ]
+  },
+  activities: [
+    { icon:"📖", tagClass:"done", title:"学科串讲", reason:"改进前：选题靠经验、被动听讲、无反馈", desc:"改进后：串讲前发问卷调研薄弱章节，针对性讲；讲完发问卷收反馈，下次迭代。", meta:[{i:"📍",t:"教室/线上"},{i:"👥",t:"每场 100+ 人"},{i:"📅",t:"每学期 3-5 场"}], joined:false },
+    { icon:"📝", tagClass:"done", title:"四六级模拟考试", reason:"改进前：考完就散，不分析不强训", desc:"全真模拟考场环境。已加满意度问卷，下一步：考后开分析会+弱项专项训练。", meta:[{i:"📍",t:"教学楼"},{i:"👥",t:"每次 200+ 人"},{i:"📅",t:"每学期 2 次"}], joined:false },
+    { icon:"⚖️", tagClass:"done", title:"辩论赛计时", reason:"改进前：手机秒表计时，人工误差大", desc:"标准化计时流程，后续可上投影计时屏减少误差。", meta:[{i:"📍",t:"报告厅"},{i:"👥",t:"每场 50+ 人"},{i:"📅",t:"每学期 1-2 次"}], joined:false },
+    { icon:"💡", tagClass:"done", title:"学习方法分享会", reason:"改进前：分享内容泛泛，缺针对性", desc:"邀请高年级按学科分享备考策略。已形成固定排期。", meta:[{i:"📍",t:"教室/线上"},{i:"👥",t:"每场 60+ 人"},{i:"📅",t:"每学期 2 次"}], joined:false },
+    { icon:"📚", tagClass:"done", title:"期末资料整理与分发", reason:"改进前：散落各处，查找不便", desc:"按学科分类打包历年真题+重点笔记，网盘+公众号发布，下载量 500+ 次。", meta:[{i:"📍",t:"线上"},{i:"👥",t:"覆盖全院"},{i:"📅",t:"每学期末"}], joined:false },
+    { icon:"🎓", tagClass:"done", title:"新生学业导航", reason:"改进前：仅讲选课，信息覆盖面窄", desc:"介绍大学学习方法、资源渠道、常见坑点。每场150+人。", meta:[{i:"📍",t:"教室"},{i:"👥",t:"每场 150+ 人"},{i:"📅",t:"每学年开学"}], joined:false },
+  ],
+  upcoming: [
+    { id:"u1", period:"近期", icon:"📊", title:"模考成绩分析会", desc:"逐题型得分率统计→找共性弱项→专项训练→二次模考验证。", steps:["题型统计","弱项定位","专项训练","二次验证"], interest:3 },
+    { id:"u2", period:"本学期末", icon:"🎯", title:"串讲 2.0", desc:"投票问「最怕哪几章」→聚焦2-3章精讲→小组研讨→录播沉淀。", steps:["选题投票","精讲","小组研讨","录播"], interest:5 },
+    { id:"u3", period:"下学期初", icon:"🔄", title:"模考×串讲联动", desc:"一测定弱点→串讲击破→二测验证→闭环对比。", steps:["一测定位","串讲击破","二测验证","闭环对比"], interest:4 },
+    { id:"u4", period:"待定", icon:"🏆", title:"学习打卡挑战赛", desc:"周目标→每日打卡→周榜公布→结赛发证。社区化学氛带动。", steps:["规则设计","建群","每日打卡","周榜","发证"], interest:2 },
+    { id:"u5", period:"远期", icon:"🤖", title:"AI学习工具分享会", desc:"演示正确prompt写法——笔记整理、知识点梳理、错题分析。", steps:["内容调研","PPT制作","现场演示","互动答疑"], interest:1 },
+  ],
+  materials: [
+    { icon:"📄", type:"pdf", title:"串讲讲义合集", desc:"3 学期累积", size:"45 MB", date:"2026-06" },
+    { icon:"📊", type:"xls", title:"模考成绩分析报告", desc:"含逐题得分率", size:"2.3 MB", date:"2026-06" },
+    { icon:"📝", type:"doc", title:"活动复盘记录汇总", desc:"13 次活动归档", size:"1.8 MB", date:"2026-07" },
+    { icon:"📋", type:"doc", title:"活动策划模板", desc:"含甘特图", size:"0.5 MB", date:"2026-03" },
+    { icon:"🖼️", type:"img", title:"活动照片存档", desc:"37 张高清", size:"120 MB", date:"2026-07" },
+    { icon:"📖", type:"pdf", title:"部门新成员手册", desc:"v2.0 修订版", size:"3.1 MB", date:"2026-07" },
+    { icon:"📊", type:"xls", title:"活动反馈数据汇总", desc:"12 次活动数据", size:"0.8 MB", date:"2026-07" },
+    { icon:"🔗", type:"link", title:"历年推文存档", desc:"19 篇链接", size:"—", date:"长期更新" },
+    { icon:"📄", type:"pdf", title:"辩论赛计时操作流程", desc:"标准化 SOP", size:"0.3 MB", date:"2026-05" },
+    { icon:"📊", type:"xls", title:"成员考核评分表", desc:"本学期数据", size:"0.15 MB", date:"2026-07" },
+    { icon:"🖼️", type:"img", title:"模考试卷扫描件", desc:"4 套真题", size:"85 MB", date:"2026-06" },
+    { icon:"🔗", type:"link", title:"QQ群公告·常见问题", desc:"长期维护", size:"—", date:"持续更新" },
+  ],
+  recruit: [
+    { icon:"📝", title:"内容组", needs:"善于梳理 & 敢于出题", desc:"编写串讲讲义、命制模考题、整理学习资料。有模板和前辈带。" },
+    { icon:"🎨", title:"宣传组", needs:"有审美 & 会表达", desc:"设计海报、推文写作、摄影短视频、社群运营。" },
+    { icon:"⚙️", title:"执行组", needs:"细心靠谱 & 临场不乱", desc:"场地、设备、物资、现场巡考——活动落地的最后一道防线。" },
+    { icon:"📊", title:"数据组", needs:"喜欢用数据说话", desc:"问卷回收、成绩分析、复盘报告——从数字中找到问题。" },
+  ],
+  recruitProcess: [
+    { num:"01", title:"投递报名表", desc:"填写线上/线下报名表，写明意向组别" },
+    { num:"02", title:"线上面试", desc:"15分钟视频面试，聊聊你的想法" },
+    { num:"03", title:"试用观察", desc:"参与2次活动执行，感受实际节奏" },
+    { num:"04", title:"正式入部", desc:"通过后正式加入，配传帮带老成员" },
+  ],
+  suggestions: [
+    { id:"s1", author:"匿名", time:"2026-07-12", cat:"活动建议", content:"建议串讲后发精简版笔记（2-3页），方便没来现场的同学快速复习。", status:"new", statusLabel:"已采纳", votes:8, voted:false },
+    { id:"s2", author:"张伟", time:"2026-07-08", cat:"资料需求", content:"希望模考增加听力专项训练。统计显示听力平均得分率仅58%。", status:"process", statusLabel:"讨论中", votes:11, voted:false },
+    { id:"s3", author:"匿名", time:"2026-06-30", cat:"资料需求", content:"期末资料按学科分文件夹打包，标上「必看」「选看」标签。", status:"done", statusLabel:"已完成", votes:14, voted:false },
+    { id:"s4", author:"李明", time:"2026-06-22", cat:"活动建议", content:"建议新增编程学习活动（LeetCode刷题小组），计算机和理工科有刚需。", status:"new", statusLabel:"已采纳", votes:6, voted:false },
+    { id:"s5", author:"王芳", time:"2026-06-15", cat:"合作意向", content:"和英语角联动——把模考听力、翻译做成联合活动，补我们的短板。", status:"process", statusLabel:"讨论中", votes:9, voted:false },
+    { id:"s6", author:"匿名", time:"2026-06-08", cat:"其他意见", content:"推文发布时间改晚上8-10点。中午发阅读量不高。", status:"done", statusLabel:"已调整", votes:12, voted:false },
+  ],
+};
+
+const TAG_CM = { leader:"mtag-leader", tech:"mtag-tech", plan:"mtag-plan", media:"mtag-media", active:"mtag-active", ops:"mtag-ops" };
+const ATTR_CLASS = { orange:"af-orange", amber:"af-amber", blue:"af-blue", green:"af-green", purple:"af-purple", red:"af-red" };
+
+const panelTitles = {
+  home:"控制台", members:"成员简介", tasks:"部门任务看板",
+  activities:"已有活动", upcoming:"待开展活动", materials:"以往资料",
+  recruit:"招新", suggest:"建议渠道", rating:"评分版块", datacenter:"数据中心"
+};
+
+// ===== Panel switching =====
+function switchPanel(name) {
+  document.querySelectorAll(".panel-page").forEach(p => p.classList.remove("active"));
+  const t = document.querySelector('[data-panel="'+name+'"]');
+  if (t) t.classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(b => {
+    const a = b.getAttribute("onclick");
+    if (a && a.includes("'"+name+"'")) b.classList.add("active");
+  });
+  document.getElementById("topbarBread").textContent = panelTitles[name] || name;
+  document.querySelector(".sidebar").classList.remove("open");
+  if (name === "rating") setTimeout(animateBars, 200);
+  if (name === "datacenter") renderDataCenter();
+}
+
+// ===== Modal =====
+function showModal(html) {
+  document.getElementById("modalContent").innerHTML = html;
+  document.getElementById("modal").classList.add("show");
+}
+function closeModal() {
+  document.getElementById("modal").classList.remove("show");
+}
+document.getElementById("modal").addEventListener("click", function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== SVG Radar =====
+function makeRadar(values, size) {
+  const s = size || 130, cx = s/2, cy = s/2, r = s*0.38, n = 5;
+  const labels = ["执行","策划","协作","成长","可靠"];
+  let pts = "";
+  for (let i = 0; i < n; i++) {
+    const angle = (Math.PI*2*i/n) - Math.PI/2;
+    const v = values[i]/100;
+    pts += (cx+Math.cos(angle)*r*v).toFixed(1)+","+(cy+Math.sin(angle)*r*v).toFixed(1)+" ";
+  }
+  let grid = "";
+  for (let l = 1; l <= 4; l++) {
+    let gp = "";
+    for (let i = 0; i < n; i++) {
+      const angle = (Math.PI*2*i/n) - Math.PI/2;
+      gp += (cx+Math.cos(angle)*r*l*0.25).toFixed(1)+","+(cy+Math.sin(angle)*r*l*0.25).toFixed(1)+" ";
+    }
+    grid += '<polygon points="'+gp.trim()+'" fill="none" stroke="#2A2A30" stroke-width="0.8"/>';
+  }
+  let axes = "";
+  for (let i = 0; i < n; i++) {
+    const angle = (Math.PI*2*i/n) - Math.PI/2;
+    const lx = Math.cos(angle)*r, ly = Math.sin(angle)*r;
+    const tx = Math.cos(angle)*(r+13), ty = Math.sin(angle)*(r+13);
+    axes += '<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+lx)+'" y2="'+(cy+ly)+'" stroke="#2A2A30" stroke-width="0.8"/>';
+    axes += '<text x="'+(cx+tx)+'" y="'+(cy+ty)+'" text-anchor="middle" dominant-baseline="middle" fill="#71717A" font-size="6">'+labels[i]+'</text>';
+  }
+  return '<svg viewBox="0 0 '+s+' '+s+'">'+grid+axes+'<polygon points="'+pts.trim()+'" fill="rgba(234,88,12,0.2)" stroke="#EA580C" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+}
+
+// ===== Member Detail Modal =====
+function showMemberDetail(id) {
+  const m = DATA.members.find(x => x.id === id);
+  if (!m) return;
+  showModal(`
+    <div style="display:flex;align-items:center;gap:0.85rem;margin-bottom:1rem;">
+      <div style="width:56px;height:56px;border-radius:50%;background:var(--orange-glow);color:var(--orange);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;border:2px solid var(--orange2);">${m.avatar}</div>
+      <div>
+        <div style="font-size:1.15rem;font-weight:700;color:var(--white);">${m.name}</div>
+        <div style="font-size:0.8rem;color:var(--orange);">${m.role}</div>
+      </div>
+      <div style="margin-left:auto;font-size:1.3rem;font-weight:800;color:var(--orange);">${m.total}</div>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text2);line-height:1.5;margin-bottom:0.75rem;">${m.desc}</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem;text-align:center;padding:0.75rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:0.75rem;">
+      <div><div style="font-size:1rem;font-weight:700;color:var(--orange);">${m.actScore}</div><div style="font-size:0.62rem;color:var(--muted);">活动参与 (30%)</div></div>
+      <div><div style="font-size:1rem;font-weight:700;color:var(--blue);">${m.peerScore}</div><div style="font-size:0.62rem;color:var(--muted);">同事互评 (35%)</div></div>
+      <div><div style="font-size:1rem;font-weight:700;color:var(--green);">${m.svcScore}</div><div style="font-size:0.62rem;color:var(--muted);">服务反馈 (35%)</div></div>
+    </div>
+    <div style="font-size:0.72rem;font-weight:600;color:var(--text2);margin-bottom:0.5rem;">六维属性面板</div>
+    <div style="display:flex;align-items:center;gap:1.25rem;">
+      <div style="flex:1;">
+        ${m.attrs.map(at => `
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
+          <span style="font-size:0.68rem;color:var(--muted);width:44px;">${at.name}</span>
+          <div style="flex:1;height:5px;background:var(--border);border-radius:100px;overflow:hidden;">
+            <div style="height:100%;border-radius:100px;background:${at.cls==='orange'?'var(--orange)':at.cls==='amber'?'var(--amber)':at.cls==='blue'?'var(--blue)':at.cls==='green'?'var(--green)':at.cls==='purple'?'var(--purple)':'var(--red)'};width:${at.val}%;"></div>
+          </div>
+          <span style="font-size:0.65rem;font-weight:600;color:var(--text);width:22px;text-align:right;">${at.val}</span>
+        </div>`).join("")}
+      </div>
+      <div style="flex-shrink:0;">${makeRadar([m.attrs[4].val,m.attrs[1].val,m.attrs[2].val,m.attrs[3].val,m.attrs[5].val], 110)}</div>
+    </div>
+    <div style="margin-top:0.65rem;display:flex;gap:0.35rem;flex-wrap:wrap;">${m.tags.map(t => '<span class="mtag '+TAG_CM[t.c]+'">'+t.t+'</span>').join("")}</div>
+    <div class="modal-close"><button class="btn-ok" onclick="closeModal()">关闭</button></div>
+  `);
+}
+
+// ===== Peer Rating Modal =====
+function showPeerRate(id) {
+  const m = DATA.members.find(x => x.id === id);
+  if (!m) return;
+  showModal(`
+    <h3>⭐ 为 ${m.name} 互评打分</h3>
+    <p style="font-size:0.82rem;color:var(--text2);margin-bottom:1rem;">从三个维度 1-10 分评价（匿名），提交后影响同事互评分</p>
+    <div style="margin-bottom:0.75rem;">
+      <label style="font-size:0.8rem;color:var(--text);display:block;margin-bottom:0.3rem;">执行力（做事是否靠谱、按时交付）</label>
+      <input type="range" id="peerExec" min="1" max="10" value="7" style="width:100%;accent-color:var(--orange);">
+      <span style="font-size:0.7rem;color:var(--muted);float:right;" id="peerExecVal">7</span>
+    </div>
+    <div style="margin-bottom:0.75rem;">
+      <label style="font-size:0.8rem;color:var(--text);display:block;margin-bottom:0.3rem;">协作力（沟通顺畅、团队配合）</label>
+      <input type="range" id="peerCollab" min="1" max="10" value="7" style="width:100%;accent-color:var(--blue);">
+      <span style="font-size:0.7rem;color:var(--muted);float:right;" id="peerCollabVal">7</span>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label style="font-size:0.8rem;color:var(--text);display:block;margin-bottom:0.3rem;">可靠度（关键时刻能不能顶上去）</label>
+      <input type="range" id="peerReliable" min="1" max="10" value="7" style="width:100%;accent-color:var(--green);">
+      <span style="font-size:0.7rem;color:var(--muted);float:right;" id="peerReliableVal">7</span>
+    </div>
+    <div class="modal-close">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-ok" onclick="submitPeerRate('${id}')">提交评价</button>
+    </div>
+  `);
+  // 绑定 range 滑块显示值（延迟执行避免模板中的 script 标签问题）
+  setTimeout(function(){
+    ["peerExec","peerCollab","peerReliable"].forEach(function(pid){
+      var el = document.getElementById(pid);
+      if (el) el.addEventListener("input", function(){ document.getElementById(pid+"Val").textContent = this.value; });
+    });
+  }, 50);
+}
+
+function submitPeerRate(id) {
+  const m = DATA.members.find(x => x.id === id);
+  if (!m) return;
+  const e = parseInt(document.getElementById("peerExec").value);
+  const c = parseInt(document.getElementById("peerCollab").value);
+  const r = parseInt(document.getElementById("peerReliable").value);
+  const avg = Math.round((e + c + r) / 3 * 10);
+  // 模拟：新互评分与旧分加权平均
+  const oldPeer = m.peerScore;
+  m.peerScore = Math.round(oldPeer * 0.7 + avg * 0.3);
+  m.peerRated = true;
+  // 重新计算总分
+  m.total = Math.round(m.actScore * 0.3 + m.peerScore * 0.35 + m.svcScore * 0.35);
+  closeModal();
+  renderAll();
+  toast("已为 " + m.name + " 提交互评，同事互评分更新至 " + m.peerScore, "success");
+}
+
+// ===== Render All =====
+function renderAll() {
+  // Members
+  document.getElementById("membersContainer").innerHTML = DATA.members.map(m => `
+    <div class="pcard member-card" onclick="showMemberDetail('${m.id}')">
+      <div class="m-card-top">
+        <span class="detail-hint">点击查看详情 →</span>
+        <div class="m-avatar">${m.avatar}</div>
+        <div class="m-name">${m.name}</div>
+        <div class="m-role">${m.role}</div>
+      </div>
+      <div class="m-card-mid">
+        <div class="m-stats">
+          <div class="m-stat"><div class="ms-num">${m.acts}</div><div class="ms-label">参与活动</div></div>
+          <div class="m-stat"><div class="ms-num">${m.sessions}</div><div class="ms-label">在岗学期</div></div>
+          <div class="m-stat"><div class="ms-num" style="color:var(--orange);">${m.total}</div><div class="ms-label">综合评分</div></div>
+        </div>
+      </div>
+      <div class="m-card-bot">${m.tags.map(t => '<span class="mtag '+TAG_CM[t.c]+'">'+t.t+'</span>').join("")}</div>
+    </div>
+  `).join("");
+
+  // Tasks Kanban
+  const cols = [
+    { id:"todo", label:"待开始", dot:"todo", items:DATA.tasks.todo },
+    { id:"doing", label:"进行中", dot:"doing", items:DATA.tasks.doing },
+    { id:"done", label:"已完成", dot:"done", items:DATA.tasks.done },
+  ];
+  document.getElementById("kanbanContainer").innerHTML = cols.map(c => `
+    <div class="kanban-col">
+      <div class="kanban-col-header"><span class="kc-dot ${c.dot}"></span> ${c.label}<span style="margin-left:auto;font-size:0.7rem;color:var(--muted);">${c.items.length}</span></div>
+      <div class="kanban-col-body">
+        ${c.items.map(t => `
+          <div class="kanban-card" onclick="moveTask('${t.id}','${c.id}')" title="点击推进状态">
+            <div class="kc-title">${t.title}</div>
+            <div class="kc-desc">${t.desc}</div>
+            ${t.progress < 100 ? '<div class="kc-progress"><div class="kc-progress-bar"><div class="kc-progress-fill" style="width:'+t.progress+'%"></div></div><div class="kc-progress-text">'+t.progress+'%</div></div>' : ''}
+            <div class="kc-meta">
+              <span class="kc-assignee">👤 ${t.assignee}</span>
+              <span class="kc-priority ${t.priority==='high'?'kc-pri-high':t.priority==='mid'?'kc-pri-mid':'kc-pri-low'}">${t.priority==='high'?'高优先':t.priority==='mid'?'中优先':'低优先'}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  // Activities
+  document.getElementById("activitiesContainer").innerHTML = DATA.activities.map(a => `
+    <div class="pcard act-card">
+      <div class="act-head"><span class="ah-icon">${a.icon}</span></div>
+      <div class="act-body">
+        <span class="act-tag done">已完结</span>
+        <h4>${a.title}</h4>
+        <div class="act-reason">${a.reason}</div>
+        <p>${a.desc}</p>
+        <div class="act-meta">${a.meta.map(m => '<span>'+m.i+' '+m.t+'</span>').join("")}</div>
+        <button class="act-signup-btn ${a.joined?'joined':''}" onclick="event.stopPropagation();toggleActJoin('${a.title}')">
+          ${a.joined ? '✅ 已关注' : '👋 我想参加类似活动'}
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  // Upcoming
+  document.getElementById("timelineContainer").innerHTML = DATA.upcoming.map((a,i) => `
+    <div class="tl-item ${i===0?'now':i===1?'next':''}">
+      <div class="tl-card">
+        <div class="tlc-period">${a.period}</div>
+        <h4>${a.icon} ${a.title}</h4>
+        <p>${a.desc}</p>
+        <div class="tlc-steps">${a.steps.map(s => '<span class="tl-step">'+s+'</span>').join("")}</div>
+        <button class="tl-interest ${a.interest>0?'interested':''}" onclick="toggleInterest('${a.id}')">
+          ${a.interest>0 ? '💡 '+a.interest+' 人感兴趣' : '💡 我感兴趣'}
+        </button>
+      </div>
+    </div>
+  `).join("");
+
+  // Materials
+  window._matFilter = "all";
+  renderMaterials();
+
+  // Recruit
+  document.getElementById("recruitProcess").innerHTML = DATA.recruitProcess.map(r => `
+    <div class="pcard rp-step"><div class="rps-num">${r.num}</div><h4>${r.title}</h4><p>${r.desc}</p></div>
+  `).join("");
+  document.getElementById("recruitContainer").innerHTML = DATA.recruit.map(r => `
+    <div class="pcard recruit-card"><div class="rc-icon">${r.icon}</div><h4>${r.title}</h4><div class="rc-needs">${r.needs}</div><p>${r.desc}</p></div>
+  `).join("");
+
+  // Suggestions
+  renderSuggestions();
+
+  // Ratings
+  document.getElementById("ratingContainer").innerHTML = DATA.members.filter(m => m.acts >= 1).sort((a,b) => b.total - a.total).map(m => `
+    <div class="pcard rating-card">
+      <div class="rt-top">
+        <div class="rt-avatar">${m.avatar}</div>
+        <div><div class="rt-name">${m.name}</div><div class="rt-role">${m.role}</div></div>
+        <div class="rt-total">${m.total}</div>
+      </div>
+      <div class="rt-sources">
+        <div class="rt-src"><div class="rts-val" style="color:var(--orange);">${m.actScore}</div><div class="rts-label">活动参与</div><div class="rts-weight">30%</div></div>
+        <div class="rt-src"><div class="rts-val" style="color:var(--blue);">${m.peerScore}</div><div class="rts-label">同事互评</div><div class="rts-weight">35%</div></div>
+        <div class="rt-src"><div class="rts-val" style="color:var(--green);">${m.svcScore}</div><div class="rts-label">服务反馈</div><div class="rts-weight">35%</div></div>
+      </div>
+      <div class="radar-wrap">${makeRadar([m.attrs[4].val,m.attrs[1].val,m.attrs[2].val,m.attrs[3].val,m.attrs[5].val], 120)}</div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="rate-peer-btn ${m.peerRated?'rated':''}" onclick="event.stopPropagation();showPeerRate('${m.id}')">
+          ${m.peerRated ? '✅ 已评价' : '⭐ 互评打分'}
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+// ===== Task movement =====
+function moveTask(taskId, fromCol) {
+  let task = null;
+  const cols = ["todo","doing","done"];
+  const maps = { todo: DATA.tasks.todo, doing: DATA.tasks.doing, done: DATA.tasks.done };
+  const labels = { todo:"待开始", doing:"进行中", done:"已完成" };
+  const idx = cols.indexOf(fromCol);
+  if (idx < 0 || idx >= cols.length - 1) { toast("已完成的任务无法再推进", ""); return; }
+  const src = maps[cols[idx]];
+  const tIdx = src.findIndex(t => t.id === taskId);
+  if (tIdx < 0) return;
+  task = src.splice(tIdx, 1)[0];
+  if (cols[idx+1] === "done") task.progress = 100;
+  else if (cols[idx+1] === "doing") task.progress = Math.max(task.progress, 50);
+  maps[cols[idx+1]].unshift(task);
+  renderAll();
+  toast('任务「'+task.title+'」已推进至 '+labels[cols[idx+1]]+' ✅', "success");
+}
+
+// ===== Materials =====
+function renderMaterials() {
+  const s = (document.getElementById("matSearch")?.value || "").toLowerCase();
+  const list = DATA.materials.filter(m => {
+    if (window._matFilter !== "all" && m.type !== window._matFilter) return false;
+    if (s && !m.title.toLowerCase().includes(s) && !m.desc.toLowerCase().includes(s)) return false;
+    return true;
+  });
+  document.getElementById("materialsContainer").innerHTML = list.map(m => `
+    <a href="#" class="mat-card" onclick="event.preventDefault()">
+      <div class="mat-icon ${m.type}">${m.icon}</div>
+      <div class="mat-info"><h4>${m.title}</h4><div class="mi-meta"><span>${m.desc}</span><span>${m.size}</span><span>${m.date}</span></div></div>
+    </a>
+  `).join("");
+}
+function setMatFilter(type, btn) {
+  window._matFilter = type;
+  document.querySelectorAll(".mat-filter").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderMaterials();
+}
+function filterMaterials() { renderMaterials(); }
+
+// ===== localStorage 持久化层 =====
+const LS_KEY_SUG = "studydept_suggestions";
+const LS_KEY_REC = "studydept_recruit";
+const LS_KEY_RAT = "studydept_ratings";
+
+function loadStore(key, fallback) {
+  try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+function saveStore(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) { toast("存储空间不足！请清理数据。", ""); }
+}
+
+// 初始化时从 localStorage 加载持久化数据，合并到 DATA
+(function initStorage() {
+  var savedSug = loadStore(LS_KEY_SUG, null);
+  if (savedSug) DATA.suggestions = savedSug;
+  var savedRec = loadStore(LS_KEY_REC, []);
+  DATA._recruits = savedRec;
+  var savedRat = loadStore(LS_KEY_RAT, null);
+  if (savedRat) DATA.ratings = savedRat;
+})();
+
+// ===== Suggestions (localStorage 持久化) =====
+function renderSuggestions() {
+  document.getElementById("suggestHistory").innerHTML = DATA.suggestions.map(s => `
+    <div class="suggest-item">
+      <div class="sh-top">
+        <div><span class="sh-cat">${s.cat}</span><span class="sh-author">${s.author}</span></div>
+        <span class="sh-time">${s.time}</span>
+      </div>
+      <div class="sh-content">${s.content}</div>
+      <div class="s-vote-row">
+        <button class="s-vote-btn ${s.voted?'voted':''}" onclick="voteSuggestion('${s.id}')">${s.voted?'👍 已支持':'👍 支持'}</button>
+        <span class="s-vote-count">${s.votes} 人支持</span>
+        <span class="s-status ${s.status}" style="margin-left:auto;">${s.statusLabel}</span>
+      </div>
+    </div>
+  `).join("");
+}
+function voteSuggestion(sid) {
+  const s = DATA.suggestions.find(x => x.id === sid);
+  if (!s) return;
+  if (!s.voted) { s.votes++; s.voted = true; saveStore(LS_KEY_SUG, DATA.suggestions); toast("已支持该建议 👍", "success"); }
+  else toast("你已经支持过了", "");
+  renderSuggestions();
+}
+
+var _suggestCat = "活动建议";
+function selectCat(cat, btn) {
+  _suggestCat = cat;
+  document.querySelectorAll(".sf-cat").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function submitSuggest() {
+  var name = document.getElementById("suggestName").value || "匿名";
+  var topic = document.getElementById("suggestTopic").value.trim();
+  var content = document.getElementById("suggestContent").value.trim();
+  if (!topic) { toast("请填写建议主题", ""); return; }
+  if (!content) { toast("请填写建议内容", ""); return; }
+  DATA.suggestions.unshift({
+    id:"s" + Date.now(), author:name, time:new Date().toISOString().slice(0,10), cat:_suggestCat,
+    content: topic + "：" + content, status:"new", statusLabel:"已收到", votes:0, voted:false
+  });
+  saveStore(LS_KEY_SUG, DATA.suggestions); // 持久化到 localStorage
+  renderSuggestions();
+  document.getElementById("suggestName").value = "";
+  document.getElementById("suggestTopic").value = "";
+  document.getElementById("suggestContent").value = "";
+  updateSugStats();
+  toast("建议提交成功！数据已保存到本地。", "success");
+}
+function updateSugStats() {
+  var elTotal = document.getElementById("sugTotal");
+  var elAdopted = document.getElementById("sugAdopted");
+  var elProcessing = document.getElementById("sugProcessing");
+  if (elTotal) elTotal.textContent = DATA.suggestions.length;
+  if (elAdopted) elAdopted.textContent = DATA.suggestions.filter(s => s.status === "done" || s.statusLabel === "已采纳" || s.statusLabel === "已完成").length;
+  if (elProcessing) elProcessing.textContent = DATA.suggestions.filter(s => s.status === "process").length;
+}
+
+// ===== Activity signup =====
+function toggleActJoin(title) {
+  const a = DATA.activities.find(x => x.title === title);
+  if (!a) return;
+  a.joined = !a.joined;
+  if (a.joined) toast("已关注「" + title + "」，类似活动会通知你", "success");
+  else toast("已取消关注", "");
+  renderAll();
+}
+
+// ===== Upcoming interest =====
+function toggleInterest(uid) {
+  const u = DATA.upcoming.find(x => x.id === uid);
+  if (!u) return;
+  if (u.interest === undefined || u.interest === null) u.interest = 0;
+  u.interest++;
+  toast("已标记对「" + u.title + "」感兴趣 💡", "success");
+  renderAll();
+}
+
+// ===== Recruit (localStorage 持久化) =====
+function submitRecruit() {
+  var name = document.getElementById("rfName").value.trim();
+  var group = document.getElementById("rfGroup").value;
+  var dept = document.getElementById("rfDept").value.trim();
+  var contact = document.getElementById("rfContact").value.trim();
+  var intro = document.getElementById("rfIntro").value.trim();
+  if (!name) { toast("请填写姓名", ""); return; }
+  if (!group) { toast("请选择意向组别", ""); return; }
+  if (!DATA._recruits) DATA._recruits = [];
+  DATA._recruits.push({
+    id: "r" + Date.now(), name: name, group: group, dept: dept, contact: contact, intro: intro,
+    time: new Date().toISOString().slice(0, 19).replace("T", " "), status: "已报名"
+  });
+  saveStore(LS_KEY_REC, DATA._recruits); // 持久化到 localStorage
+  toast(name + " 同学，你已报名 " + group + "！报名信息已保存。", "success");
+  document.getElementById("rfName").value = "";
+  document.getElementById("rfGroup").value = "";
+  document.getElementById("rfDept").value = "";
+  document.getElementById("rfContact").value = "";
+  document.getElementById("rfIntro").value = "";
+}
+
+// ===== 数据中心 =====
+function renderDataCenter() {
+  var sugs = DATA.suggestions, recs = DATA._recruits || [];
+  document.getElementById("dcSugCount").textContent = sugs.length;
+  document.getElementById("dcRecCount").textContent = recs.length;
+  document.getElementById("dcSugDone").textContent = sugs.filter(s => s.statusLabel === "已采纳" || s.statusLabel === "已完成" || s.status === "done").length;
+  // 估算存储大小
+  var totalBytes = new Blob([JSON.stringify({s:sugs,r:recs})]).size;
+  document.getElementById("dcStorage").textContent = totalBytes < 1024 ? totalBytes + " B" : (totalBytes/1024).toFixed(1) + " KB";
+
+  document.getElementById("dcSugList").innerHTML = sugs.length === 0
+    ? '<div style="color:var(--muted);padding:1rem;text-align:center;">暂无建议</div>'
+    : sugs.map(s => '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);"><span style="color:var(--orange);font-weight:600;">'+s.cat+'</span> · '+s.author+' · <span style="color:var(--muted);">'+s.time+'</span><br>'+s.content+'<br><span class="s-status '+s.status+'" style="font-size:0.65rem;">'+s.statusLabel+'</span> '+s.votes+' 票</div>').join("");
+
+  document.getElementById("dcRecList").innerHTML = recs.length === 0
+    ? '<div style="color:var(--muted);padding:1rem;text-align:center;">暂无报名</div>'
+    : recs.map(r => '<div style="padding:0.5rem 0;border-bottom:1px solid var(--border);"><b style="color:var(--white);">'+r.name+'</b> → <span style="color:var(--blue);">'+r.group+'</span><br><span style="font-size:0.7rem;color:var(--muted);">'+r.dept+' | '+r.contact+' | '+r.time+'</span><br><span style="font-size:0.75rem;">'+r.intro+'</span></div>').join("");
+}
+
+function exportAllData() {
+  var data = { suggestions: DATA.suggestions, recruits: DATA._recruits || [], ratings: loadStore(LS_KEY_RAT, DATA.ratings), exportTime: new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a"); a.href = url; a.download = "studydept-data-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click(); URL.revokeObjectURL(url);
+  toast("数据已导出为 JSON 文件 📥", "success");
+}
+
+function importDataPrompt() {
+  var input = document.createElement("input"); input.type = "file"; input.accept = ".json";
+  input.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      try {
+        var data = JSON.parse(ev.target.result);
+        if (data.suggestions && Array.isArray(data.suggestions)) { DATA.suggestions = data.suggestions; saveStore(LS_KEY_SUG, data.suggestions); }
+        if (data.recruits && Array.isArray(data.recruits)) { DATA._recruits = data.recruits; saveStore(LS_KEY_REC, data.recruits); }
+        if (data.ratings && Array.isArray(data.ratings)) { DATA.ratings = data.ratings; saveStore(LS_KEY_RAT, data.ratings); }
+        renderAll(); toast("数据导入成功！", "success");
+      } catch(err) { toast("文件格式错误，无法解析。", ""); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function clearAllData() {
+  if (!confirm("⚠️ 确认清空全部数据？\n\n这将删除所有建议提交记录和报名记录。\n建议先「导出全部数据」备份。\n\n此操作不可撤销！")) return;
+  localStorage.removeItem(LS_KEY_SUG);
+  localStorage.removeItem(LS_KEY_REC);
+  DATA.suggestions = DATA.suggestions.filter(s => s.id && s.id.indexOf("s17") === 0); // 保留预置示例
+  DATA._recruits = [];
+  saveStore(LS_KEY_SUG, DATA.suggestions);
+  saveStore(LS_KEY_REC, DATA._recruits);
+  renderAll(); toast("全部数据已清空。", "success");
+}
+
+// ===== Animate bars =====
+function animateBars() {
+  document.querySelectorAll(".rbar-fill[data-width]").forEach(el => el.style.width = el.dataset.width + "%");
+  document.querySelectorAll(".at-attr-fill[data-width]").forEach(el => el.style.width = el.dataset.width + "%");
+}
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
