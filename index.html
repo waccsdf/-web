@@ -1178,6 +1178,8 @@ function submitSuggest() {
     content: topic + "：" + content, status:"new", statusLabel:"已收到", votes:0, voted:false
   });
   saveStore(LS_KEY_SUG, DATA.suggestions); // 持久化到 localStorage
+  // 同步到服务器（后端不可用时静默降级到 localStorage）
+  fetch("/api/suggest",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:name,cat:_suggestCat,topic:topic,content:content})}).catch(function(){});
   renderSuggestions();
   document.getElementById("suggestName").value = "";
   document.getElementById("suggestTopic").value = "";
@@ -1229,7 +1231,9 @@ function submitRecruit() {
     time: new Date().toISOString().slice(0, 19).replace("T", " "), status: "已报名"
   });
   saveStore(LS_KEY_REC, DATA._recruits); // 持久化到 localStorage
-  toast(name + " 同学，你已报名 " + group + "！报名信息已保存。", "success");
+  // 同步到服务器（后端不可用时静默降级到 localStorage）
+  fetch("/api/recruit",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:name,group:group,dept:dept,contact:contact,intro:intro})}).catch(function(){});
+  toast(name + " 同学，你已报名 " + group + "！", "success");
   document.getElementById("rfName").value = "";
   document.getElementById("rfGroup").value = "";
   document.getElementById("rfDept").value = "";
